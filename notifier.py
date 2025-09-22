@@ -14,4 +14,13 @@ def post_to_slack(papers, webhook_url: str):
             f"{p['summary'][:400]}..."  # 400文字だけサマリー表示
         )
         payload = {"text": text}
-        requests.post(webhook_url, json=payload, timeout=10).raise_for_status()
+        try:
+            response = requests.post(webhook_url, json=payload, timeout=10)
+            # ステータスコード確認
+            if response.status_code == 200 and response.text.strip() == "ok":
+                print(f"✅ Slack通知成功: {p['title']}")
+            else:
+                print(f"⚠️ Slack通知失敗: {response.status_code}, {response.text}")
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"❌ Slack通知エラー: {e}")
